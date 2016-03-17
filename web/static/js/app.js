@@ -1,16 +1,17 @@
 import {Socket, LongPoller} from "phoenix"
+import Video from './video'
 
 class App {
+  constructor() {
+    this.images = {}
+  }
 
-  static init(){
+  init(){
     let socket = new Socket("/socket", {
-      logger: ((kind, msg, data) => { console.log(`${kind}: ${msg}`, data) })
+      logger: ((kind, msg, data) => {})
     })
 
     socket.connect({user_id: "123"})
-    var $status    = $("#status")
-    var $messages  = $("#messages")
-    var $input     = $("#message-input")
     var $username  = $("#username")
 
     socket.onOpen( ev => console.log("OPEN", ev) )
@@ -24,35 +25,45 @@ class App {
     chan.onError(e => console.log("something went wrong", e))
     chan.onClose(e => console.log("channel closed", e))
 
-    $input.off("keypress").on("keypress", e => {
-      if (e.keyCode == 13) {
-        chan.push("new:msg", {user: $username.val(), body: $input.val()})
-        $input.val("")
+    chan.on("new:msg", msg => {
+      if (msg.user !== 'SYSTEM') {
+        this.updateVideo(msg)
       }
     })
 
-    chan.on("new:msg", msg => {
-      $messages.append(this.messageTemplate(msg))
-      scrollTo(0, document.body.scrollHeight)
-    })
-
-    chan.on("user:entered", msg => {
-      var username = this.sanitize(msg.user || "anonymous")
-      $messages.append(`<br/><i>[${username} entered]</i>`)
+    $('button').click( e => {
+      var username = $username.val()
+      if (username === '') {
+        console.log('select an username first')
+      } else {
+        Video.start(username, chan)
+      }
     })
   }
 
-  static sanitize(html){ return $("<div/>").text(html).html() }
+  updateVideo(msg) {
+    var $img = this.getOrCreateVideo(msg.user)
+    $img.attr('src', msg.body)
+  }
 
-  static messageTemplate(msg){
-    let username = this.sanitize(msg.user || "anonymous")
-    let body     = this.sanitize(msg.body)
+  getOrCreateVideo(username) {
+    var $img = this.images[username]
 
-    return(`<p><a href='#'>[${username}]</a>&nbsp; ${body}</p>`)
+    if (!$img) {
+      var $video = this.videoTemplate(username)
+      $('#videos').append($video)
+      $img = $video.find('img')
+      this.images[username] = $img
+    }
+    return $img
+  }
+
+  videoTemplate(username){
+    return $(`<div id='${username}' class='video'><img></div>`)
   }
 
 }
 
-$( () => App.init() )
+$( () => (new App()).init() )
 
 export default App

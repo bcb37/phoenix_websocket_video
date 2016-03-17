@@ -9,6 +9,7 @@
 
     <title>Hello Phoenix!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <script src='https://pixlcore.com/demos/webcamjs/webcam.js'></script>
   </head>
 
   <body>
@@ -22,7 +23,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Phoenix Chat</a>
+          <a class="navbar-brand" href="#">Phoenix Websocket Video</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav pull-right">

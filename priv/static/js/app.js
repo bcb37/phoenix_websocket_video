@@ -2385,28 +2385,31 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _phoenix = require("phoenix");
 
+var _video = require("./video");
+
+var _video2 = _interopRequireDefault(_video);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var App = function () {
   function App() {
     _classCallCheck(this, App);
+
+    this.images = {};
   }
 
-  _createClass(App, null, [{
+  _createClass(App, [{
     key: "init",
     value: function init() {
       var _this = this;
 
       var socket = new _phoenix.Socket("/socket", {
-        logger: function logger(kind, msg, data) {
-          console.log(kind + ": " + msg, data);
-        }
+        logger: function logger(kind, msg, data) {}
       });
 
       socket.connect({ user_id: "123" });
-      var $status = $("#status");
-      var $messages = $("#messages");
-      var $input = $("#message-input");
       var $username = $("#username");
 
       socket.onOpen(function (ev) {
@@ -2434,35 +2437,44 @@ var App = function () {
         return console.log("channel closed", e);
       });
 
-      $input.off("keypress").on("keypress", function (e) {
-        if (e.keyCode == 13) {
-          chan.push("new:msg", { user: $username.val(), body: $input.val() });
-          $input.val("");
+      chan.on("new:msg", function (msg) {
+        if (msg.user !== 'SYSTEM') {
+          _this.updateVideo(msg);
         }
       });
 
-      chan.on("new:msg", function (msg) {
-        $messages.append(_this.messageTemplate(msg));
-        scrollTo(0, document.body.scrollHeight);
-      });
-
-      chan.on("user:entered", function (msg) {
-        var username = _this.sanitize(msg.user || "anonymous");
-        $messages.append("<br/><i>[" + username + " entered]</i>");
+      $('button').click(function (e) {
+        var username = $username.val();
+        if (username === '') {
+          console.log('select an username first');
+        } else {
+          _video2.default.start(username, chan);
+        }
       });
     }
   }, {
-    key: "sanitize",
-    value: function sanitize(html) {
-      return $("<div/>").text(html).html();
+    key: "updateVideo",
+    value: function updateVideo(msg) {
+      var $img = this.getOrCreateVideo(msg.user);
+      $img.attr('src', msg.body);
     }
   }, {
-    key: "messageTemplate",
-    value: function messageTemplate(msg) {
-      var username = this.sanitize(msg.user || "anonymous");
-      var body = this.sanitize(msg.body);
+    key: "getOrCreateVideo",
+    value: function getOrCreateVideo(username) {
+      var $img = this.images[username];
 
-      return "<p><a href='#'>[" + username + "]</a>&nbsp; " + body + "</p>";
+      if (!$img) {
+        var $video = this.videoTemplate(username);
+        $('#videos').append($video);
+        $img = $video.find('img');
+        this.images[username] = $img;
+      }
+      return $img;
+    }
+  }, {
+    key: "videoTemplate",
+    value: function videoTemplate(username) {
+      return $("<div id='" + username + "' class='video'><img></div>");
     }
   }]);
 
@@ -2470,10 +2482,65 @@ var App = function () {
 }();
 
 $(function () {
-  return App.init();
+  return new App().init();
 });
 
 exports.default = App;
+});
+
+;require.register("web/static/js/video", function(exports, require, module) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Video = function () {
+  function Video() {
+    _classCallCheck(this, Video);
+  }
+
+  _createClass(Video, null, [{
+    key: 'start',
+    value: function start(username, chan) {
+      Webcam.set({
+        width: 320,
+        height: 240,
+        dest_width: 320,
+        dest_height: 240,
+        image_format: 'jpeg',
+        jpeg_quality: 80,
+        force_flash: false,
+        //flip_horiz: true,
+        fps: 30
+      });
+
+      var stream = function stream(username, chan) {
+        Webcam.snap(function (data_uri) {
+          chan.push("new:msg", { user: username, body: data_uri });
+        });
+        var callback = function callback() {
+          stream(username, chan);
+        };
+        requestAnimationFrame(callback);
+      };
+
+      Webcam.on('live', function () {
+        stream(username, chan);
+      });
+
+      Webcam.attach('#my_webcam');
+    }
+  }]);
+
+  return Video;
+}();
+
+exports.default = Video;
 });
 
 ;require('web/static/js/app');
