@@ -10,7 +10,7 @@ export default class Video {
       jpeg_quality: 50,
       force_flash: false,
       //flip_horiz: true,
-      fps: 16,
+      fps: 20,
     })
 
     var stream= (username, chan) => {
@@ -20,7 +20,8 @@ export default class Video {
       var callback = () => {
         stream(username, chan)
       }
-      requestAnimationFrame(callback)
+      window.setTimeout(callback, 50)
+      //requestAnimationFrame(callback)
     }
 
     Webcam.on('live', () => { stream(username, chan) })
