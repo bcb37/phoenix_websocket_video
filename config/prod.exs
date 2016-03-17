@@ -8,7 +8,7 @@ use Mix.Config
 # meaningful, we use this information when generating URLs.
 config :chat, Chat.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [host: "phoenix-websocket-video.heroku.com"],
+  url: [host: "phoenix-websocket-video.herokuapp.com"],
   secret_key_base: System.get_env("SECRET_KEY_BASE")
 # ## SSL Support
 #
