@@ -7,10 +7,10 @@ export default class Video {
       dest_width: 320,
       dest_height: 240,
       image_format: 'jpeg',
-      jpeg_quality: 80,
+      jpeg_quality: 50,
       force_flash: false,
       //flip_horiz: true,
-      fps: 30,
+      fps: 16,
     })
 
     var stream= (username, chan) => {
