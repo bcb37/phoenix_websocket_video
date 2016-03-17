@@ -9,7 +9,7 @@ use Mix.Config
 config :chat, Chat.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: "phoenix-websocket-video.heroku.com"]
-
+  secret_key_base: System.get_env("SECRET_KEY_BASE")
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
@@ -42,4 +42,3 @@ config :logger, level: :info
 
 # Finally import the config/prod.secret.exs
 # which should be versioned separately.
-import_config "prod.secret.exs"
