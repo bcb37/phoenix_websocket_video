@@ -9,6 +9,7 @@ use Mix.Config
 config :chat, Chat.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: "phoenix-websocket-video.heroku.com"],
+  adapter: Ecto.Adapters.Postgres,
   secret_key_base: System.get_env("SECRET_KEY_BASE")
 # ## SSL Support
 #
